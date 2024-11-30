@@ -35,9 +35,12 @@
                 <v-col cols='4'>
                   <v-text-field v-model='finalPrice' label='最終定價' prepend-inner-icon='mdi-currency-usd' type='number' outlined />
                 </v-col>
-                <v-col cols='4'>
+                <v-col class='d-flex' cols='4' :style="{ gap: '28px' }">
                   <v-btn color='primary' type='submit' :disabled='!isValidToSubmit'>
                     確認定價
+                  </v-btn>
+                  <v-btn color='secondary' type='button' @click='resetPricing' v-if='isValidToSubmit'>
+                    重設定價
                   </v-btn>
                 </v-col>
               </v-row>
@@ -68,7 +71,7 @@ const transCost = parseFloat(import.meta.env.VITE_TRANSPOSTATION_COST)
 const pricePerGram = parseFloat(import.meta.env.VITE_PRICE_PER_GRAM)
 const extraPricePerGram = parseFloat(import.meta.env.VITE_EXTRA_PRICE_PER_GRAM)
 
-const emit = defineEmits(['submit-price']);
+const emit = defineEmits(['submit-price', 'reset-pricing']);
 
 const totalCost = computed(() => {
   if (isNil(manHour.value) || isNil(baseCost.value)) return 0
@@ -100,6 +103,15 @@ const isValidToSubmit = computed(() => {
 
 const submitFinalPrice = () => {
   emit('submit-price', finalPrice.value);
+};
+
+const resetPricing = () => {
+  baseCost.value = 0
+  manHour.value = 0
+  weight.value = 0
+  isBonus.value = false
+  finalPrice.value = 0
+  emit('reset-pricing')
 };
 
 watch(feeAdjustedPrice, () => {

@@ -1,6 +1,5 @@
 <template>
   <v-container id='app-cntr'>
-
     <v-row justify='end'>
       <v-col cols='1'>
         <theme-toggle-btn />
@@ -31,7 +30,10 @@
       </v-col>
     </v-row>
 
-    <CostCalculator @submit-price='handleUpdateFinalPrice' />
+    <CostCalculator
+        @submit-price='handleUpdateFinalPrice'
+        @reset-pricing='resetPricing'
+    />
 
     <v-row v-if='selectedItemId'>
       <v-col cols='12'>
@@ -51,12 +53,13 @@
               prepend-icon='mdi-store-plus'
               text='庫存＋＋'
               type='elevated'
-              @click='addToVariant(item.raw.id)'/>
+              :disabled='!isPricingConfirmed'
+              @click='incrementInventory(item)'
+            />
           </template>
         </v-data-table>
       </v-col>
     </v-row>
-
   </v-container>
 </template>
 
@@ -69,6 +72,9 @@ import { isEmpty, isNil } from 'lodash'
 import ThemeToggleBtn from '@/components/ThemeToggleBtn.vue'
 import CostCalculator from '@/components/CostCalculator.vue'
 import { getInventoriesOfVariants } from '@/services/items.service.js'
+import { updateInventory } from '@/services/inventory.service.js' // New service for inventory update
+
+const storeId = import.meta.env.VITE_LOYVERSE_STORE_ID
 
 onMounted(async () => {
   logger.debug('=== App.vue onMounted ===')
@@ -86,6 +92,8 @@ const selectedCategoryId = ref(null)
 const selectedItemId = ref(null)
 const selectedItem = ref(null)
 const isTableLoading = ref(false)
+const isPricingConfirmed = ref(false)
+const finalPrice = ref(0)
 
 const filteredItems = computed(() => {
   if (!selectedCategoryId.value) return []
@@ -96,7 +104,9 @@ const onCategoryChange = () => {
   selectedItemId.value = null
 }
 
-watch(selectedItemId, async (newValue, oldValue) => {
+watch(selectedItemId, async (newValue) => {
+  if (!newValue) return
+
   isTableLoading.value = true
 
   let item = itemStore.items.find(item => item.id === newValue)
@@ -108,13 +118,12 @@ watch(selectedItemId, async (newValue, oldValue) => {
     ...item,
     variants: item.variants.map(variant => ({
       ...variant,
-      inventory: inventories.get(variant.variant_id) || '／' // Default to 0 if no inventory found
+      inventory: inventories.get(variant.variant_id) || 0 // Default to 0 if no inventory found
     }))
   }
 
   isTableLoading.value = false
 })
-
 
 // ==========
 // item table
@@ -141,7 +150,31 @@ const tableItems = computed(() => {
     })
 })
 
-const addToVariant = async (variantId) => {
+const incrementInventory = async (item) => {
+  try {
+    const newInventory = item.inventory + 1
+    logger.debug('Updating inventory of ' + item.option1_value + '. ' + item.inventory + ' -> ' + newInventory)
+
+    await updateInventory([{
+      variant_id: item.id,
+      store_id: storeId,
+      stock_after: newInventory
+    }])
+
+    // Refresh inventory
+    let variantIds = selectedItem.value.variants.map(variant => variant.variant_id)
+    let inventories = await getInventoriesOfVariants(variantIds)
+
+    selectedItem.value = {
+      ...selectedItem.value,
+      variants: selectedItem.value.variants.map(variant => ({
+        ...variant,
+        inventory: inventories.get(variant.variant_id) || 0
+      }))
+    }
+  } catch (error) {
+    logger.error('Error adding to variant:', error)
+  }
 }
 
 // ==========
@@ -150,6 +183,12 @@ const addToVariant = async (variantId) => {
 const handleUpdateFinalPrice = (price) => {
   console.log("Updated finalPrice:", price)
   finalPrice.value = price;
+  isPricingConfirmed.value = true;
+};
+
+const resetPricing = () => {
+  isPricingConfirmed.value = false;
+  finalPrice.value = 0;
 };
 
 </script>
