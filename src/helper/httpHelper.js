@@ -1,10 +1,14 @@
 import axios from 'axios'
 import { logger } from '@/helper/logHelper.js'
+import pinia from '@/store/index.js'
+import { useStoreConfigStore } from '@/store/store.store.js'
+
+const configStore = useStoreConfigStore(pinia)
 
 const instance = axios.create({
   // baseURL: `http://localhost:${import.meta.env.VITE_BACKEND_PORT}`,
   headers: {
-    'Authorization': `Bearer ${import.meta.env.VITE_LOYVERSE_TOKEN}`,
+    'Authorization': `Bearer ${configStore.getToken()}`,
     'Content-Type': 'application/json'
   },
   timeout: 15000
