@@ -1,7 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
-import rollupNodePolyFill from 'rollup-plugin-node-polyfills'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -76,7 +76,7 @@ export default defineConfig({
       plugins: [
         // Enable rollup polyfills plugin
         // used during production bundling
-        rollupNodePolyFill(),
+        nodePolyfills(),
       ],
     },
   },
@@ -105,7 +105,7 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: `@import "@/assets/variables.scss";`
+        additionalData: `@use "@/assets/variables.scss";`
       }
     }
   }
