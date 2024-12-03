@@ -16,12 +16,9 @@
     "lodash": "^4.17.21",
     "pinia": "^2.2.2",
     "vue": "^3.4.29",
-    "vuetify": "^3.7.2",
-    "winston": "^3.14.2"
+    "vuetify": "^3.7.2"
   },
   "devDependencies": {
-    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
-    "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
     "@mdi/font": "^7.4.47",
     "@vitejs/plugin-vue": "^5.1.4",
     "rollup-plugin-node-polyfills": "^0.2.1",

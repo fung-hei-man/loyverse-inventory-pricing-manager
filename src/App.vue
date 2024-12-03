@@ -75,7 +75,6 @@ import { isEmpty, isNil } from 'lodash'
 import { useItemStore } from '@/store/items.store.js'
 import { useCategoryStore } from '@/store/categories.store.js'
 import { useStoreConfigStore } from '@/store/store.store.js'
-import { logger } from '@/helper/logHelper.js'
 import ThemeToggleBtn from '@/components/ThemeToggleBtn.vue'
 import CostCalculator from '@/components/CostCalculator.vue'
 import StoreConfigModal from '@/components/StoreConfigModal.vue'
@@ -90,7 +89,7 @@ const storeConfigModal = ref(null)
 const isStoreConfigured = ref(false)
 
 onMounted(async () => {
-  logger.debug('=== App.vue onMounted ===')
+  console.debug('=== App.vue onMounted ===')
   const storeId = storeConfigStore.getStoreId()
   const token = storeConfigStore.getToken()
   if (!storeId || !token) {
@@ -102,7 +101,7 @@ onMounted(async () => {
 
   await useCategoryStore().getAllCategories()
   await useItemStore().getItems()
-  logger.debug('=== App.vue onMounted Completed ===')
+  console.debug('=== App.vue onMounted Completed ===')
 })
 
 
@@ -180,7 +179,7 @@ const incrementInventory = async (item) => {
     }
 
     const newInventory = item.inventory + 1
-    logger.debug('Updating inventory of ' + item.option1_value + '. ' + item.inventory + ' -> ' + newInventory)
+    console.debug('Updating inventory of ' + item.option1_value + '. ' + item.inventory + ' -> ' + newInventory)
 
     await updateInventory([{
       variant_id: item.id,
@@ -200,7 +199,7 @@ const incrementInventory = async (item) => {
       }))
     }
   } catch (error) {
-    logger.error('Error adding to variant:', error)
+    console.error('Error adding to variant:', error)
   }
 }
 

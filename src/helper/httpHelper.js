@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { logger } from '@/helper/logHelper.js'
 import pinia from '@/store/index.js'
 import { useStoreConfigStore } from '@/store/store.store.js'
 
@@ -35,34 +34,34 @@ instance.interceptors.response.use(
 
 const errorHandler = (error) => {
   if (error.response) {
-    logger.error(error.response)
+    console.error(error.response)
 
   } else if (error.request) {
     // 沒有收到回應
     if (error?.code === 'ECONNABORTED') {
-      logger.error('請求時間過長，取消請求')
+      console.error('請求時間過長，取消請求')
     }
   } else {
-    logger.error('Failed to send API', error.message)
+    console.error('Failed to send API', error.message)
   }
 }
 
 export const get = async (path) => {
-  logger.http(`GET /loyverse${path}`)
+  console.log(`GET /loyverse${path}`)
   return await instance.get(`/loyverse${path}`)
 }
 
 export const del = async (path) => {
-  logger.http(`DELETE /loyverse${path}`)
+  console.log(`DELETE /loyverse${path}`)
   return await instance.delete(`/loyverse${path}`)
 }
 
 export const put = async (path, body) => {
-  logger.http(`PUT /loyverse${path}`)
+  console.log(`PUT /loyverse${path}`)
   return await instance.put(`/loyverse${path}`, body)
 }
 
 export const post = async (path, body) => {
-  logger.http(`POST /loyverse${path}`)
+  console.log(`POST /loyverse${path}`)
   return await instance.post(`/loyverse${path}`, body)
 }

@@ -1,6 +1,5 @@
 import * as httpHelper from '@/helper/httpHelper.js'
 import { pick } from 'lodash'
-import { logger } from '@/helper/logHelper.js'
 
 export const getAllItems = async () => {
   try {
@@ -10,7 +9,7 @@ export const getAllItems = async () => {
       pick(item, ['id', 'category_id', 'item_name', 'variants'])
     )
   } catch (err) {
-    logger.error(err);
+    console.error(err);
     return [];
   }
 }
@@ -24,7 +23,7 @@ export const getInventoriesOfVariants = async (variantIds) => {
     );
 
   } catch (err) {
-    logger.error(err);
+    console.error(err);
     return [];
   }
 }
