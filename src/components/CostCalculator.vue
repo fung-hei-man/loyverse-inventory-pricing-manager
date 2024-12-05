@@ -7,13 +7,30 @@
           <v-card-text>
             <v-form @submit.prevent='submitFinalPrice'>
               <v-row>
-                <v-col cols='4'>
+                <v-col cols='3'>
                   <v-text-field v-model.number='baseCost' label='基本成本' type='number' prefix='NT' outlined />
                 </v-col>
-                <v-col cols='4'>
+                <v-col cols='3'>
+                  <div class="text-caption">
+                    加工費
+                  </div>
+                  <v-slider
+                      v-model='retouchCost'
+                      :min='0'
+                      :max='350'
+                      :step='50'
+                      thumb-label
+                      color='primary'
+                  >
+                    <template v-slot:thumb-label="{ modelValue }">
+                      NT${{ modelValue }}
+                    </template>
+                  </v-slider>
+                </v-col>
+                <v-col cols='3'>
                   <v-text-field v-model.number='manHour' label='工時' type='number' suffix='小時' outlined />
                 </v-col>
-                <v-col cols='4'>
+                <v-col cols='3'>
                   <v-text-field v-model.number='weight' label='重量' type='number' suffix='公克' outlined />
                 </v-col>
               </v-row>
@@ -57,6 +74,7 @@ import { computed, ref, watch } from 'vue'
 import { isNil } from 'lodash'
 
 const baseCost = ref(0)
+const retouchCost = ref(0)
 const manHour = ref(0)
 const weight = ref(0)
 const isBonus = ref(false)
@@ -66,7 +84,6 @@ const markUpPercent = parseFloat(import.meta.env.VITE_MARKUP_PERCENT)
 const extraMarkUpPercent = parseFloat(import.meta.env.VITE_EXTRA_MARKUP_PERCENT)
 const txnFeePercent = parseFloat(import.meta.env.VITE_TXN_FEE_PERCENT)
 const labourCostPerHour = parseFloat(import.meta.env.VITE_LABOR_COST_PER_HOUR)
-const retouchCost = parseFloat(import.meta.env.VITE_RETOUCH_COST)
 const transCost = parseFloat(import.meta.env.VITE_TRANSPOSTATION_COST)
 const pricePerGram = parseFloat(import.meta.env.VITE_PRICE_PER_GRAM)
 const extraPricePerGram = parseFloat(import.meta.env.VITE_EXTRA_PRICE_PER_GRAM)
@@ -77,7 +94,7 @@ const totalCost = computed(() => {
   if (isNil(manHour.value) || isNil(baseCost.value)) return 0
 
   const labourCost = manHour.value * labourCostPerHour
-  return baseCost.value + retouchCost + transCost + labourCost
+  return baseCost.value + retouchCost.value + transCost + labourCost
 });
 
 const price = computed(() => {
