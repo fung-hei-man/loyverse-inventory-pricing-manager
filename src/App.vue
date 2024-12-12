@@ -57,8 +57,7 @@
                 prepend-icon='mdi-store-plus'
                 text='庫存＋＋'
                 type='elevated'
-                :disabled='!isPricingConfirmed'
-                :loading='isAddingInventory'
+                :loading='isAddingInventoryForItem === item.id'
                 @click='incrementInventory(item)'
             />
           </template>
@@ -169,7 +168,7 @@ watch(selectedItemId, (newValue) => {
 // item table
 // ==========
 const isLoadingInventory = ref(false)
-const isAddingInventory = ref(false)
+const isAddingInventoryForItem = ref(null)
 
 const tableHeaders = ref([
   { title: '品項', key: 'option1_value', sortable: true },
@@ -194,7 +193,8 @@ const tableItems = computed(() => {
 })
 
 const incrementInventory = async (item) => {
-  isAddingInventory.value = true
+  isAddingInventoryForItem.value = item.id
+
   try {
     const storeId = storeConfigStore.getStoreId()
     if (!storeId) {
@@ -225,7 +225,7 @@ const incrementInventory = async (item) => {
   } catch (error) {
     console.error('Error adding to variant:', error)
   } finally {
-    isAddingInventory.value = false
+    isAddingInventoryForItem.value = null
   }
 }
 
