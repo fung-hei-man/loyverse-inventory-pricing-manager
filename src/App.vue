@@ -35,7 +35,7 @@
     </v-row>
 
     <CostCalculator
-        @submit-price='handleUpdateFinalPrice'
+        @submit-price='onConfirmPrice'
         @reset-pricing='resetPricing'
     />
 
@@ -44,7 +44,7 @@
         <v-data-table
             :headers='tableHeaders'
             :items='tableItems'
-            :loading='isTableLoading'
+            :loading='isLoadingInventory'
             :items-per-page='25'
             class='elevation-1'
         >
@@ -58,25 +58,48 @@
                 text='庫存＋＋'
                 type='elevated'
                 :disabled='!isPricingConfirmed'
-                :loading="isAddingInventory"
+                :loading='isAddingInventory'
                 @click='incrementInventory(item)'
             />
           </template>
         </v-data-table>
       </v-col>
     </v-row>
+
+    <v-row class='mt-2' justify='end'>
+      <v-col cols='1'>
+        <v-btn
+            v-if='selectedItemId && !isLoadingInventory'
+            color='primary'
+            text='新增品項'
+            @click='openCreateVariantModal'
+        />
+      </v-col>
+    </v-row>
+
   </v-container>
   <v-container v-else>
     <v-alert type='error'>
       請先設置 Loyverse 資料
     </v-alert>
   </v-container>
+
   <StoreConfigModal ref='storeConfigModal' />
+
+  <CreateVariantModal
+      :show='showCreateVariantModal'
+      :initial-price='finalPrice'
+      :initial-cost='finalCost'
+      :selected-item-id='selectedItemId'
+      @update:show='showCreateVariantModal = $event'
+      @on-created-variant='onCreatedVariant'
+  />
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { isEmpty, isNil } from 'lodash'
+import { storeToRefs } from 'pinia'
 import { Analytics } from '@vercel/analytics/vue'
 
 import { useItemStore } from '@/store/items.store.js'
@@ -85,6 +108,7 @@ import { useStoreConfigStore } from '@/store/store.store.js'
 import ThemeToggleBtn from '@/components/ThemeToggleBtn.vue'
 import CostCalculator from '@/components/CostCalculator.vue'
 import StoreConfigModal from '@/components/StoreConfigModal.vue'
+import CreateVariantModal from '@/components/CreateVariantModal.vue'
 import { getInventoriesOfVariants } from '@/services/items.service.js'
 import { updateInventory } from '@/services/inventory.service.js'
 
@@ -94,8 +118,7 @@ const storeConfigStore = useStoreConfigStore()
 
 const storeConfigModal = ref(null)
 const isStoreConfigured = ref(false)
-const isAddingInventory = ref(false)
-const isLoadingItems = ref(false)
+const showCreateVariantModal = ref(false)
 
 onMounted(async () => {
   console.debug('=== App.vue onMounted ===')
@@ -109,8 +132,8 @@ onMounted(async () => {
     isStoreConfigured.value = true
   }
 
-  await useCategoryStore().getAllCategories()
-  await useItemStore().getItems()
+  await categoriesStore.getAllCategories()
+  await itemStore.getItems()
 
   isLoadingItems.value = false
   console.debug('=== App.vue onMounted Completed ===')
@@ -120,46 +143,34 @@ onMounted(async () => {
 // ==========
 // dropdown
 // ==========
+const { items } = storeToRefs(itemStore)
 const selectedCategoryId = ref(null)
 const selectedItemId = ref(null)
 const selectedItem = ref(null)
-const isTableLoading = ref(false)
 const isPricingConfirmed = ref(false)
-const finalPrice = ref(0)
+const isLoadingItems = ref(false)
 
 const filteredItems = computed(() => {
   if (!selectedCategoryId.value) return []
-  return itemStore.items.filter(item => item.category_id === selectedCategoryId.value)
+  return items.value.filter(item => item.category_id === selectedCategoryId.value)
 })
 
 const onCategoryChange = () => {
   selectedItemId.value = null
 }
 
-watch(selectedItemId, async (newValue) => {
+watch(selectedItemId, (newValue) => {
   if (!newValue) return
-
-  isTableLoading.value = true
-
-  let item = itemStore.items.find(item => item.id === newValue)
-  let variantIds = item.variants.map(variant => variant.variant_id)
-
-  let inventories = await getInventoriesOfVariants(variantIds)
-
-  selectedItem.value = {
-    ...item,
-    variants: item.variants.map(variant => ({
-      ...variant,
-      inventory: inventories.get(variant.variant_id) || 0 // Default to 0 if no inventory found
-    }))
-  }
-
-  isTableLoading.value = false
+  refreshInventories(newValue)
 })
+
 
 // ==========
 // item table
 // ==========
+const isLoadingInventory = ref(false)
+const isAddingInventory = ref(false)
+
 const tableHeaders = ref([
   { title: '品項', key: 'option1_value', sortable: true },
   { title: '成本', key: 'cost', sortable: true },
@@ -218,12 +229,44 @@ const incrementInventory = async (item) => {
   }
 }
 
+const refreshInventories = async (itemId) => {
+  isLoadingInventory.value = true
+
+  let item = items.value.find(item => item.id === itemId)
+  let variantIds = item.variants.map(variant => variant.variant_id)
+
+  let inventories = await getInventoriesOfVariants(variantIds)
+
+  selectedItem.value = {
+    ...item,
+    variants: item.variants.map(variant => ({
+      ...variant,
+      inventory: inventories.get(variant.variant_id) || 0 // Default to 0 if no inventory found
+    }))
+  }
+
+  isLoadingInventory.value = false
+}
+
+const openCreateVariantModal = () => {
+  showCreateVariantModal.value = true
+}
+
+const onCreatedVariant = async () => {
+  await itemStore.upsertItem(selectedItemId.value)
+  await refreshInventories(selectedItemId.value)
+}
+
 // ==========
 // emits
 // ==========
-const handleUpdateFinalPrice = (price) => {
-  console.log("Updated finalPrice:", price)
+const finalPrice = ref(0)
+const finalCost = ref(0)
+
+const onConfirmPrice = ({ cost, price }) => {
+  console.log('Updated finalPrice:', price)
   finalPrice.value = price;
+  finalCost.value = cost;
   isPricingConfirmed.value = true;
 };
 

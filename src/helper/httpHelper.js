@@ -5,7 +5,6 @@ import { useStoreConfigStore } from '@/store/store.store.js'
 const configStore = useStoreConfigStore(pinia)
 
 const instance = axios.create({
-  // baseURL: `http://localhost:${import.meta.env.VITE_BACKEND_PORT}`,
   headers: {
     'Authorization': `Bearer ${configStore.getToken()}`,
     'Content-Type': 'application/json'

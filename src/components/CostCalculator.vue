@@ -119,7 +119,7 @@ const isValidToSubmit = computed(() => {
 });
 
 const submitFinalPrice = () => {
-  emit('submit-price', finalPrice.value);
+  emit('submit-price', { cost: totalCost.value, price: finalPrice.value });
 };
 
 const resetPricing = () => {
