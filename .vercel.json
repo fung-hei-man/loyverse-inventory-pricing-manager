@@ -1,0 +1,6 @@
+{
+  "rewrites": [{
+    "source": "/loyverse/:match*",
+    "destination": "https://api.loyverse.com/v1.0/:match*"
+  }]
+}
