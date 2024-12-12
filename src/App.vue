@@ -1,4 +1,6 @@
 <template>
+  <Analytics />
+
   <v-container v-if='isStoreConfigured' id='app-cntr'>
     <v-row justify='end'>
       <v-col cols='1'>
@@ -72,6 +74,8 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { isEmpty, isNil } from 'lodash'
+import { Analytics } from '@vercel/analytics/vue'
+
 import { useItemStore } from '@/store/items.store.js'
 import { useCategoryStore } from '@/store/categories.store.js'
 import { useStoreConfigStore } from '@/store/store.store.js'
