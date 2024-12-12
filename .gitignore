@@ -31,3 +31,4 @@ coverage
 
 Loyverse_API.postman_collection.json
 package-lock.json
+.vercel
