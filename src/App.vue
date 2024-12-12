@@ -16,6 +16,7 @@
             item-title='name'
             item-value='id'
             label='類別'
+            :loading='isLoadingItems'
             @update:model-value='onCategoryChange'
         ></v-select>
       </v-col>
@@ -27,6 +28,7 @@
             item-title='item_name'
             item-value='id'
             label='變體'
+            :loading='isLoadingItems'
             :disabled='!selectedCategoryId'
         ></v-select>
       </v-col>
@@ -56,6 +58,7 @@
                 text='庫存＋＋'
                 type='elevated'
                 :disabled='!isPricingConfirmed'
+                :loading="isAddingInventory"
                 @click='incrementInventory(item)'
             />
           </template>
@@ -91,9 +94,12 @@ const storeConfigStore = useStoreConfigStore()
 
 const storeConfigModal = ref(null)
 const isStoreConfigured = ref(false)
+const isAddingInventory = ref(false)
+const isLoadingItems = ref(false)
 
 onMounted(async () => {
   console.debug('=== App.vue onMounted ===')
+  isLoadingItems.value = true
   const storeId = storeConfigStore.getStoreId()
   const token = storeConfigStore.getToken()
   if (!storeId || !token) {
@@ -105,6 +111,8 @@ onMounted(async () => {
 
   await useCategoryStore().getAllCategories()
   await useItemStore().getItems()
+
+  isLoadingItems.value = false
   console.debug('=== App.vue onMounted Completed ===')
 })
 
@@ -175,10 +183,11 @@ const tableItems = computed(() => {
 })
 
 const incrementInventory = async (item) => {
+  isAddingInventory.value = true
   try {
     const storeId = storeConfigStore.getStoreId()
     if (!storeId) {
-      storeIdModal.value.checkAndShowModal()
+      storeConfigModal.value.checkAndShowModal()
       return
     }
 
@@ -204,6 +213,8 @@ const incrementInventory = async (item) => {
     }
   } catch (error) {
     console.error('Error adding to variant:', error)
+  } finally {
+    isAddingInventory.value = false
   }
 }
 
